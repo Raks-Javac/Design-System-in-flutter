@@ -27,8 +27,7 @@ class DesignSystem {
 }
 
 extension DesignSystemContextExtensions on BuildContext {
-  // using pattern matching determine current typography
-
+// getting the current typography being used
   (TextTheme?, TypographyExtension?) get returnCurrentTypography {
     final theme = Theme.of(this);
 
