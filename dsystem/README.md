@@ -6,9 +6,6 @@ Welcome to the Design System repository. This document explains how to use, inte
 - [Overview](#overview)
 - [Installation](#installation)
 - [Usage](#usage)
-  - [Using V1 Design System](#using-v1-design-system)
-  - [Using V2 Design System](#using-v2-design-system)
-  - [Switching Between Light and Dark Modes](#switching-between-light-and-dark-modes)
 - [Context Extensions](#context-extensions)
 - [Contributing](#contributing)
 - [License](#license)
@@ -35,41 +32,43 @@ After that, run:
 ```
 
 ## Usage
-Using V1 Design System
+Implementing Design System
 
-V1 is the basic version of the design system that doesn't rely on extensions. To use V1, import the v1 design system and follow the setup:
+```class HomeWidget extends StatelessWidget {
+  const HomeWidget({
+    super.key,
+  });
 
-```import 'package:dsystem/v1/export.dart';
-
-class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final themeMode = V1ThemeMode.light; // or V1ThemeMode.dark
-    return MaterialApp(
-      theme: DesignSystemV1().createTheme(themeMode: themeMode),
-      home: HomeScreen(),
+    final palette = context.returnCurrentPalette;
+    final typography = context.returnCurrentTypography;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: palette.$2?.primaryColor,
+        title: Text(
+          'DUser App',
+          style: typography.$2?.bodyStyle,
+        ),
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Center(
+            child: Text(
+              'Hello User',
+              style: typography.$2?.headingStyle,
+              // style: ,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 ```
 
-Using V2 Design System
-
-V2 supports theme extensions and provides additional customization options. To use V2, import the v2 design system and configure it accordingly:
-
-
-import 'package:dsystem/v2/export.dart';
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final themeMode = V2ThemeMode.light; // or V2ThemeMode.dark
-    return MaterialApp(
-      theme: DesignSystemV2().createV1Theme(isDarkMode: themeMode),
-      home: HomeScreen(),
-    );
-  }
-}
 
 
 Context Extensions
@@ -77,42 +76,76 @@ Context Extensions
 We’ve provided a set of context extensions that simplify access to theme elements, such as palette and typography. Here’s how you can use them in your code:
 
 
-Access V1 Palette
+```
+extension DesignSystemContextExtensions on BuildContext {
+// getting the current typography being used
+  (TextTheme?, TypographyExtension?) get returnCurrentTypography {
+    final theme = Theme.of(this);
 
-```import 'package:dsystem/context_extensions.dart';
+    // Check if V2 extension exists
 
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.v1Palette;
-    return Container(
-      color: palette.primaryColor,
-      child: Text('Hello World', style: TextStyle(color: palette.secondaryColor)),
-    );
+    final v2Typography = theme.extension<TypographyExtension>();
+    if (v2Typography != null) {
+      return (null, v2Typography);
+    } else {
+      return (theme.textTheme, null);
+    }
   }
+
+  (ColorScheme?, PalleteExtension?) get returnCurrentPalette {
+    final theme = Theme.of(this);
+
+    // Check if V2 extension exists
+
+    final v2Palette = theme.extension<PalleteExtension>();
+    if (v2Palette != null) {
+      return (null, v2Palette);
+    } else {
+      return (theme.colorScheme, null);
+    }
+  }
+
+  /// Function to determine if V1 or V2 is set
+  DesignSystemVersion get activeDesignSystemVersion {
+    final theme = Theme.of(this);
+
+    // Check if V2 extension exists (if present, V2 is active)
+    if (theme.extension<PalleteExtension>() != null) {
+      return DesignSystemVersion.v2;
+    }
+    // Otherwise, it's V1
+    return DesignSystemVersion.v1;
+  }
+
+  /// V1 Palette (uses Flutter's default theming)
+  ThemeData get v1Theme {
+    return Theme.of(this); // V1 uses Flutter's default ThemeData
+  }
+
+  /// V2 Palette (uses custom extensions)
+  PalleteExtension get v2Palette {
+    final theme = Theme.of(this);
+    return theme.extension<PalleteExtension>()!;
+  }
+
+  /// Access V1 Typography (default Flutter typography)
+  TextTheme get v1Typography {
+    return Theme.of(this).textTheme; // Accesses default Flutter TextTheme
+  }
+
+  /// Access V2 Typography (using custom typography extension)
+  TypographyExtension get v2Typography {
+    final theme = Theme.of(this);
+    return theme.extension<TypographyExtension>()!;
+  }
+
+  // Add more V2 extensions as needed, e.g., Icons, Strings, etc.
 }
+
 ```
 
-and vice versa for typography and other components in v1
 
 
-Access V2 Palette
-
-````import 'package:dsystem/context_extensions.dart';
-
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final palette = context.v2Palette;
-    return Container(
-      color: palette.primaryColor,
-      child: Text('Hello World', style: TextStyle(color: palette.secondaryColor)),
-    );
-  }
-}
-```
-
-and vice versa for typography and other components in v2.
 
 
 Contributing
@@ -136,7 +169,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ```This `README.md` file covers:
 - Basic installation and usage of V1 and V2.
-- Switching between light and dark themes.
 - Context extensions for easier theme access.
 - Contribution guidelines.
 
