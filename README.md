@@ -71,7 +71,7 @@ Implementing Design System
 
 
 
-Context Extensions
+## Context Extensions
 
 We’ve provided a set of context extensions that simplify access to theme elements, such as palette and typography. Here’s how you can use them in your code:
 
